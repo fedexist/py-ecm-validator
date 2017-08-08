@@ -157,7 +157,8 @@ class XmlLexer:
 		
 		while 1:
 			tok = self.lexer.token()
-			if not tok: break
+			if not tok:
+				break
 			_debug_print_('LEXER', '[%-12s] %s' % (self.lexer.lexstate, tok))
 
 
@@ -377,10 +378,10 @@ _xml_escape_table = {
 
 
 def _xml_escape(text):
-	L = []
+	l = []
 	for c in text:
-		L.append(_xml_escape_table.get(c, c))
-	return "".join(L)
+		l.append(_xml_escape_table.get(c, c))
+	return "".join(l)
 
 
 def _xml_unescape(s):
@@ -412,7 +413,7 @@ def xml_parse(data):
 	global tokens
 	tokens = XmlLexer.tokens
 	
-	parser = yacc.yacc(method="SLR")
+	parser = yacc.yacc()
 	
 	_debug_header('PARSER')
 	root = parser.parse(data, lexer=xml_lexer.lexer, debug=False)
