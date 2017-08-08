@@ -163,6 +163,7 @@ class XmlLexer:
 
 class XmlSyntaxError(Exception):
 	def __init__(self, msg, t):
+		super(Exception, self)
 		self.message = msg
 		t.lexer.skip(1)
 
@@ -396,7 +397,8 @@ def _xml_unescape(s):
 ################################
 # INTERFACE
 
-def xml_parse(data):
+def xml_parse(data, debug=False):
+	
 	_debug_header('INPUT')
 	_debug_print_('INPUT', data)
 	_debug_footer('INPUT')
@@ -415,7 +417,7 @@ def xml_parse(data):
 	parser = yacc.yacc()
 	
 	_debug_header('PARSER')
-	root = parser.parse(data, lexer=xml_lexer.lexer, debug=False)
+	root = parser.parse(data, lexer=xml_lexer.lexer, debug=debug)
 	_debug_footer('PARSER')
 	
 	_debug_header('OUTPUT')
