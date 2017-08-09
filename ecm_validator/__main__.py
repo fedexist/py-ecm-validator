@@ -3,6 +3,7 @@ import xtm_validator
 import sys
 import codecs
 import argparse
+import re
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -17,7 +18,8 @@ filename = args.file
 
 with codecs.open(filename, "r", "utf-8") as data:
 	print "Parsing file %(filename)s..." % locals()
-	root = xtm_parser.xml_parse(data.read(), debug=debug)
+	formatted_data = re.sub(ur'<!--.*-->|<!--.*\n.*-->', '', data.read(), re.UNICODE)
+	root = xtm_parser.xml_parse(formatted_data, debug=debug)
 	print "Validating file %(filename)s..." % locals()
 	print xtm_parser.tree(root)
 	xtm_validator.validate_constraints(root)
