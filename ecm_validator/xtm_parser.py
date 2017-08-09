@@ -193,7 +193,7 @@ def p_header_root(p):
 	"""
 	_parser_trace(p)
 	
-	p[0] = DOM.Header(p[2], p[3])
+	p[0] = DOM.Header(p[2], p[3], p[5])
 	
 
 def p_root_element(p):
@@ -352,12 +352,22 @@ yacc.YaccProduction.__str__ = _yacc_production__str
 
 class DOM:
 	class Header:
-		def __init__(self, name, attributes=None):
+		def __init__(self, name, attributes=None, root=None):
 			if attributes is None:
 				attributes = {}
 			self.name = name
-			self.version = attributes['version']
-			self.encoding = attributes['encoding']
+			self.attributes = attributes
+			self.root = root
+		
+		def __str__(self):
+			attributes_str = ''
+			for attr in self.attributes:
+				attributes_str += ' %s="%s"' % (attr, _xml_escape(self.attributes[attr]))
+
+			return '<?%s%s?>' % (self.name, attributes_str)
+		
+		def __repr__(self):
+			return str(self)
 	
 	class Element:
 		# Document object model
@@ -470,15 +480,16 @@ def tree(node, level=0, init_prefix=''):
 	
 	for attr in node.attributes:
 		s_attributes += init_prefix + prefix + attr_prefix + attr + attr_postfix + node.attributes[attr] + '\n'
-	
-	if len(node.children) == 1 and not isinstance(node.children[0], DOM.Element):
+		
+	if isinstance(node, DOM.Header):
+		return s_node + '\n' + s_attributes + tree(node.root, level)
+	elif len(node.children) == 1 and not isinstance(node.children[0], DOM.Element):
 		s_node += node.children[0] + '\n'
-	
 	else:
 		for child in node.children:
 			if isinstance(child, DOM.Element):
 				s_children += tree(child, level + 1, init_prefix + prefix)
-		
+			
 		s_node += '\n'
 	
 	return s_node + s_attributes + s_children
