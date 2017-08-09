@@ -30,6 +30,8 @@ class XmlLexer:
 		'PCDATA',
 		'OPENTAGOPEN',
 		'CLOSETAGOPEN',
+		'HEADEROPEN',
+		'HEADERCLOSE',
 		
 		# state: tag
 		'TAGATTRNAME',
@@ -60,13 +62,19 @@ class XmlLexer:
 		self.lexer = lex.lex(object=self, **kwargs)
 	
 	def t_ANY_error(self, t):
-		raise XmlSyntaxError("Illegal character '%s'" % t.value[0], t)
+		print "Illegal character '%s'" % t.value[0]
+		t.lexer.skip(1)
 		pass
 	
 	# INITIAL
 	
 	t_ignore = ''
 	
+	def t_HEADEROPEN(self, t):
+		r"""<\?"""
+		t.lexer.push_state('tag')
+		return t
+		
 	def t_CLOSETAGOPEN(self, t):
 		r"""</"""
 		t.lexer.push_state('tag')
@@ -78,7 +86,7 @@ class XmlLexer:
 		return t
 	
 	def t_PCDATA(self, t):
-		"""[^<]+"""
+		r"""[^<]+"""
 		return t
 	
 	# tag: name
@@ -89,6 +97,11 @@ class XmlLexer:
 		return t
 	
 	t_tag_TAGATTRNAME.__doc__ = re_identifier
+	
+	def t_tag_HEADERCLOSE(self, t):
+		r"""\?>"""
+		t.lexer.pop_state()
+		return t
 	
 	def t_tag_TAGCLOSE(self, t):
 		r""">"""
@@ -161,9 +174,9 @@ class XmlLexer:
 			_debug_print_('LEXER', '[%-12s] %s' % (self.lexer.lexstate, tok))
 
 
-class XmlSyntaxError(Exception):
+class XmlSyntaxError(BaseException):
 	def __init__(self, msg, t):
-		super(Exception, self)
+		super(BaseException, self)
 		self.message = msg
 		t.lexer.skip(1)
 
@@ -174,6 +187,14 @@ tag_stack = []
 
 
 # Grammer
+
+def p_header_root(p):
+	"""header : HEADEROPEN TAGATTRNAME attributes HEADERCLOSE root
+	"""
+	_parser_trace(p)
+	
+	p[0] = DOM.Header(p[2], p[3])
+	
 
 def p_root_element(p):
 	"""root : element
@@ -330,6 +351,14 @@ yacc.YaccProduction.__str__ = _yacc_production__str
 # DOM
 
 class DOM:
+	class Header:
+		def __init__(self, name, attributes=None):
+			if attributes is None:
+				attributes = {}
+			self.name = name
+			self.version = attributes['version']
+			self.encoding = attributes['encoding']
+	
 	class Element:
 		# Document object model
 		#
