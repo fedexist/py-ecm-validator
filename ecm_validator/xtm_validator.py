@@ -7,7 +7,7 @@ def topological(graph):
         state[node] = GRAY
         for k in graph.get(node, ()):
             sk = state.get(k[1], None)
-            if sk == GRAY: raise ValueError("cycle") #will be changed to CycleException
+            if sk == GRAY: raise CycleException((node,k[1]))
             if sk == BLACK: continue
             enter.discard(k[1])
             dfs(k[1])
@@ -28,18 +28,20 @@ def validate_constraints(root_node):
 	topics = {} #dictionary topicid, topicname
 	adj_list = {} #dictionary node, adjacencies
 	
-	tree = root_node.node
+	tree = root_node.root
 	
 	# here goes the code that traverses the tree
 	# fill topics
 	# fill adj_list
 	
 	try: top_order = topological(adj_list)
-	except ValueError: 
-		print "Cycle!" ##poi si può modificare il topological sort per dare un'idea di dove sia il ciclo
+
+	except CycleException as e: 
+		print "Cycle between nodes " + str(e.value[0]) + " and " + str(e.value[1])
 		return
 		
 	primary_notions, secondary_notions, deepening, individual = [], [], [], []
+	
 	#traverse top_order to fill aforementioned lists
 	#check constraints on those lists
 	
