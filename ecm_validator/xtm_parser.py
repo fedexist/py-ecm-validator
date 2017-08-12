@@ -62,8 +62,7 @@ class XmlLexer:
 		self.lexer = lex.lex(object=self, **kwargs)
 	
 	def t_ANY_error(self, t):
-		print "Illegal character '%s'" % t.value[0]
-		t.lexer.skip(1)
+		raise XmlSyntaxError("Illegal character '%s'" % t.value[0], t)
 		pass
 	
 	# INITIAL
@@ -174,12 +173,15 @@ class XmlLexer:
 			_debug_print_('LEXER', '[%-12s] %s' % (self.lexer.lexstate, tok))
 
 
-class XmlSyntaxError(BaseException):
+class XmlSyntaxError(Exception):
 	def __init__(self, msg, t):
-		super(BaseException, self)
+		self.error = -2
 		self.message = msg
 		t.lexer.skip(1)
-
+		
+	def __str__(self):
+		return "%s\nExiting with error code: %s" % (self.message, str(self.error))
+	
 ################################
 # PARSER
 

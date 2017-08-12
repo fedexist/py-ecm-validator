@@ -1,4 +1,4 @@
-import xtm_parser
+from xtm_parser import XmlSyntaxError, xml_parse, tree
 import xtm_validator
 import sys
 import codecs
@@ -19,7 +19,11 @@ filename = args.file
 with codecs.open(filename, "r", "utf-8") as data:
 	print "Parsing file %(filename)s..." % locals()
 	formatted_data = re.sub(ur'<!--.*-->|<!--.*\n.*-->', '', data.read(), re.UNICODE)
-	root = xtm_parser.xml_parse(formatted_data, debug=debug)
+	try:
+		root = xml_parse(formatted_data, debug=debug)
+	except XmlSyntaxError as e:
+		print e
+		exit(e.error)
 	print "Validating file %(filename)s..." % locals()
-	print xtm_parser.tree(root)
+	print tree(root)
 	xtm_validator.validate_constraints(root)
