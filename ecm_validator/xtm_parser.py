@@ -291,7 +291,7 @@ def p_attrvalue(p):
 	p[0] = _xml_unescape(p[2])
 
 
-re_rntt = re.compile('\r\n[\t+]')
+re_rntt = re.compile('[\s]*[\r\n][\t]*')
 
 
 # child
