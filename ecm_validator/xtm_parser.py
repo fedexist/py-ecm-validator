@@ -1,4 +1,5 @@
 import sys
+import re
 from UserString import UserString
 
 import ply.yacc as yacc
@@ -290,6 +291,9 @@ def p_attrvalue(p):
 	p[0] = _xml_unescape(p[2])
 
 
+re_rntt = re.compile('\r\n[\t+]')
+
+
 # child
 def p_children(p):
 	"""children : child children
@@ -302,6 +306,8 @@ def p_children(p):
 			p[0] = [p[1]] + p[2]
 		else:
 			p[0] = [p[1]]
+		
+		p[0] = filter(lambda x: not re_rntt.search(str(x)), p[0])
 	else:
 		p[0] = []
 
