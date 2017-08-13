@@ -307,7 +307,7 @@ def p_children(p):
 		else:
 			p[0] = [p[1]]
 		
-		p[0] = filter(lambda x: not re_rntt.search(str(x)), p[0])
+		p[0] = filter(lambda x: not re_rntt.match(str(x)), p[0])
 	else:
 		p[0] = []
 

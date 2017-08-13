@@ -1,4 +1,5 @@
 from collections import deque
+from xtm_parser import DOM
 
 
 def topological(graph):
@@ -39,6 +40,39 @@ class NotALeafException(Exception):
 
 class IsItemException(Exception):
 	pass
+	
+
+class Association:
+	def __init__(self, root):
+		self.relation_type = self.Type(root.children[0])
+		self.roles = (self.Role(root.children[1]), self.Role(root.children[2]))
+	
+	def __str__(self):
+		return "%s of type %s" % (self.roles, str(self.relation_type))
+	
+	def __repr__(self):
+		return str(self)
+	
+	class Type:
+		def __init__(self, root):
+			self.href = root.children[0].attributes['href']
+		
+		def __str__(self):
+			return self.href.strip('#')
+		
+		def __repr__(self):
+			return str(self)
+	
+	class Role:
+		def __init__(self, root):
+			self.role_type = Association.Type(root.children[0])
+			self.topic_ref = root.children[1].attributes['href']
+		
+		def __str__(self):
+			return "%s (type: %s)" % (self.topic_ref.strip('#'), str(self.role_type))
+		
+		def __repr__(self):
+			return str(self)
 
 
 # TODO: Occurences handling
@@ -57,6 +91,10 @@ def validate_constraints(header):
 	# here goes the code that traverses the tree
 	# fill topics
 	# fill adj_list
+	
+	associations = [Association(_rel) for _rel in filter(lambda node: node.name == "association", tree.children)]
+	
+	print str(associations)
 	
 	try:
 		top_order = topological(adj_list)
