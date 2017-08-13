@@ -39,7 +39,7 @@ class NotALeafException(Exception):
 
 class IsItemException(Exception):
 	pass
-	
+
 
 # TODO: Occurences handling
 def validate_constraints(header):
@@ -117,14 +117,13 @@ def validate_constraints(header):
 		# then, for each element of `sub_v`, if the size of the adjacency list of this element is different than zero,
 		# add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` is not a leaf
-		if not filter(lambda rel, dest: len(adj_list[dest]) != 0, filter(lambda rel, dest: rel == "is_sug", v)):
+		if not filter(lambda rel, dest: rel == "is_sug" and len(adj_list[dest]) != 0, v):
 			raise NotALeafException()
 		# given a certain entry `v` of the adjacency list, choose a sublist `sub_v` containing only "is_item" relations,
 		# then, for each element `e` of `sub_v`, let adj_list[e.dest] as `l`, create a list containing only the "is_rel"
 		# relations `l_is_rel`. If `l_is_rel` has a different size than `l`, then add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` has at least 1 relation which isn't "is_rel"
-		if not filter(lambda rel, dest: len([_v for _k, _v in adj_list[dest] if _v != "is_rel"]) != len(adj_list[dest]),
-		              filter(lambda rel, dest: rel == "is_item", v)):
+		if not filter(lambda rel, dest: rel == "is_item" and len([_v for _k, _v in adj_list[dest] if _v != "is_rel"]) != len(adj_list[dest]), v):
 			raise IsItemException()
 	
 	return True
