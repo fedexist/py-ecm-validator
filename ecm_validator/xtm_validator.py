@@ -60,9 +60,9 @@ def validate_constraints(header):
 		def __repr__(self):
 			return str(self)
 		
-		class Type:
+		class TopicRef:
 			def __init__(self, root):
-				self.topic_ref = filter(lambda node: node.name == "type", root)[0].children[0].attributes['href']
+				self.topic_ref = filter(lambda node: node.name == "topicRef", root.children)[0].attributes['href']
 			
 			def __str__(self):
 				return self.topic_ref.strip('#')
@@ -70,17 +70,18 @@ def validate_constraints(header):
 			def __repr__(self):
 				return str(self)
 		
-		class Role:
+		class Type(TopicRef):
 			def __init__(self, root):
+				Association.TopicRef.__init__(self, filter(lambda node: node.name == "type", root)[0])
+				
+		class Role(TopicRef):
+			def __init__(self, root):
+				Association.TopicRef.__init__(self, root)
 				self.role_type = Association.Type(root.children)
-				self.topic_ref = filter(lambda node: node.name == "topicRef", root.children)[0].attributes['href']
 			
 			def __str__(self):
 				return "%s (type: %s)" % (self.topic_ref.strip('#'), str(self.role_type))
-			
-			def __repr__(self):
-				return str(self)
-	
+				
 	topics = {}  # dictionary topicid, topicname
 	adj_list = {}  # dictionary node, adjacencies
 	
