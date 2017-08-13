@@ -92,6 +92,21 @@ def validate_constraints(header):
 	# fill topics
 	# fill adj_list
 	
+	### il grafo non presenta cicli
+	### il nodo g con ruolo di deepening non ha archi in uscita
+	### il nodo q con ruolo di individual non ha archi in uscita che non siano "is_rel"
+	adj_list = {
+		'a': [("is_rel",'b'), ("is_sug",'g'), ("is_rel",'d'),],
+		'b': [],
+		'c': [("is_rel",'d'),("is_rel",'e')],
+		'd': [],
+		'e': [("is_rel",'g'), ("is_rel",'f'), ("is_rel",'q')],
+		'g': [],
+		'f': [("is_item",'q')],
+		'q': [("is_rel",'g')]
+	}
+	
+	
 	associations = [Association(_rel) for _rel in filter(lambda node: node.name == "association", tree.children)]
 	
 	print str(associations)
@@ -108,7 +123,7 @@ def validate_constraints(header):
 	
 	# check constraints on those lists:
 	
-	for k, v in adj_list:
+	for k, v in adj_list.iteritems():
 		# if the size of an entry of the adjacency list is greater than
 		# the set based off the 2nd member of the tuple (destination of the edge)
 		# then that means there's at least 1 relation which has the same destination
@@ -118,13 +133,13 @@ def validate_constraints(header):
 		# then, for each element of `sub_v`, if the size of the adjacency list of this element is different than zero,
 		# add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` is not a leaf
-		if not filter(lambda rel, dest: rel == "is_sug" and len(adj_list[dest]) != 0, v):
+		if filter(lambda (rel, dest): rel == "is_sug" and len(adj_list[dest]) != 0, v):
 			raise NotALeafException()
 		# given a certain entry `v` of the adjacency list, choose a sublist `sub_v` containing only "is_item" relations,
 		# then, for each element `e` of `sub_v`, let adj_list[e.dest] as `l`, create a list containing only the "is_rel"
 		# relations `l_is_rel`. If `l_is_rel` has a different size than `l`, then add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` has at least 1 relation which isn't "is_rel"
-		if not filter(lambda rel, dest: rel == "is_item" and len([_v for _k, _v in adj_list[dest] if _v != "is_rel"]) != len(adj_list[dest]), v):
+		if filter(lambda (rel, dest): rel == "is_item" and len([(re,des) for (re,des) in adj_list[dest] if re != "is_rel"]) != 0, v):
 			raise IsItemException()
 	
 	return True
