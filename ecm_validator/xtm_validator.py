@@ -1,5 +1,4 @@
 from collections import deque
-from xtm_parser import DOM
 
 
 def topological(graph):
@@ -42,45 +41,45 @@ class IsItemException(Exception):
 	pass
 	
 
-class Association:
-	def __init__(self, root):
-		self.relation_type = self.Type(root.children[0])
-		self.roles = (self.Role(root.children[1]), self.Role(root.children[2]))
-	
-	def __str__(self):
-		return "%s of type %s" % (self.roles, str(self.relation_type))
-	
-	def __repr__(self):
-		return str(self)
-	
-	class Type:
-		def __init__(self, root):
-			self.href = root.children[0].attributes['href']
-		
-		def __str__(self):
-			return self.href.strip('#')
-		
-		def __repr__(self):
-			return str(self)
-	
-	class Role:
-		def __init__(self, root):
-			self.role_type = Association.Type(root.children[0])
-			self.topic_ref = root.children[1].attributes['href']
-		
-		def __str__(self):
-			return "%s (type: %s)" % (self.topic_ref.strip('#'), str(self.role_type))
-		
-		def __repr__(self):
-			return str(self)
-
-
 # TODO: Occurences handling
 def validate_constraints(header):
 	"""Validates DOM starting from header.root
 	:param header -- Xml header returned from xml_parse
 	:returns True -- if no exception occurs
 	"""
+	
+	class Association:
+		def __init__(self, root):
+			self.relation_type = self.Type(root.children)
+			roles = filter(lambda node: node.name == "role", root.children)
+			self.roles = (self.Role(roles[0]), self.Role(roles[1]))
+		
+		def __str__(self):
+			return "%s of type %s" % (self.roles, str(self.relation_type))
+		
+		def __repr__(self):
+			return str(self)
+		
+		class Type:
+			def __init__(self, root):
+				self.topic_ref = filter(lambda node: node.name == "type", root)[0].children[0].attributes['href']
+			
+			def __str__(self):
+				return self.topic_ref.strip('#')
+			
+			def __repr__(self):
+				return str(self)
+		
+		class Role:
+			def __init__(self, root):
+				self.role_type = Association.Type(root.children)
+				self.topic_ref = filter(lambda node: node.name == "topicRef", root.children)[0].attributes['href']
+			
+			def __str__(self):
+				return "%s (type: %s)" % (self.topic_ref.strip('#'), str(self.role_type))
+			
+			def __repr__(self):
+				return str(self)
 	
 	topics = {}  # dictionary topicid, topicname
 	adj_list = {}  # dictionary node, adjacencies
