@@ -1,5 +1,5 @@
-from xtm_parser import XmlSyntaxError, xml_parse, tree
-import xtm_validator
+from xtm_parser import XmlSyntaxError, xml_parse
+from xtm_validator import validate_constraints, ValidationError
 import sys
 import codecs
 import argparse
@@ -26,4 +26,7 @@ with codecs.open(filename, "r", "utf-8") as data:
 		exit(e.error)
 	print "Validating file %(filename)s..." % locals()
 	# print tree(root)
-	xtm_validator.validate_constraints(root)
+	try:
+		validate_constraints(root)
+	except ValidationError as e:
+		print e
