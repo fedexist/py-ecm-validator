@@ -1,10 +1,11 @@
 from collections import deque
+from xtm_parser import DOM
 
 
 def topological(graph):
 	gray, black = 0, 1
 	order, enter, state = deque(), set(graph), {}
-	
+
 	def dfs(node):
 		state[node] = gray
 		for k in graph.get(node, ()):
@@ -47,29 +48,41 @@ def validate_constraints(header):
 	:param header -- Xml header returned from xml_parse
 	:returns True -- if no exception occurs
 	"""
-	
+
+	tree = header.root
+
 	topics = {}  # dictionary topicid, topicname
 	adj_list = {}  # dictionary node, adjacencies
-	
-	tree = header.root
-	
+
+	topic_nodes = filter(lambda node: isinstance(node, DOM.Element) and node.name == "topic", tree.children)
+	for topic in topic_nodes:
+		topic_id = topic.attributes.get('id')
+
+		topic_children = filter(lambda node: isinstance(node, DOM.Element), topic.children)
+		name_node = filter(lambda node: node.name == "name", topic_children)
+
+		if len(name_node) > 0:
+			value_children = filter(lambda node: isinstance(node, DOM.Element), name_node[0].children)
+			value_node = filter(lambda node: node.name == "value", value_children)[0]
+			topics[topic_id] = value_node.children
+
 	# TODO:
 	# here goes the code that traverses the tree
 	# fill topics
 	# fill adj_list
-	
+
 	try:
 		top_order = topological(adj_list)
 	except CycleException as e:
 		print "Cycle between nodes " + str(e.value[0]) + " and " + str(e.value[1])
 		return
-	
+
 	primary_notions, secondary_notions, deepening, individual = [], [], [], []
-	
+
 	# traverse top_order to fill aforementioned lists
-	
+
 	# check constraints on those lists:
-	
+
 	for k, v in adj_list:
 		# if the size of an entry of the adjacency list is greater than
 		# the set based off the 2nd member of the tuple (destination of the edge)
