@@ -49,27 +49,81 @@ def validate_constraints(header):
 	:returns True -- if no exception occurs
 	"""
 
-	tree = header.root
+	class Association:
+		def __init__(self, root):
+			self.relation_type = self.Type(root.children)
+			roles = filter(lambda node: node.name == "role", root.children)
+			self.roles = (self.Role(roles[0]), self.Role(roles[1]))
+		
+		def __str__(self):
+			return "%s of type %s" % (self.roles, str(self.relation_type))
+		
+		def __repr__(self):
+			return str(self)
+		
+		class TopicRef:
+			def __init__(self, root):
+				self.topic_ref = filter(lambda node: node.name == "topicRef", root.children)[0].attributes['href']
+			
+			def __str__(self):
+				return self.topic_ref.strip('#')
+			
+			def __repr__(self):
+				return str(self)
+		
+		class Type(TopicRef):
+			def __init__(self, root):
+				Association.TopicRef.__init__(self, filter(lambda node: node.name == "type", root)[0])
+				
+		class Role(TopicRef):
+			def __init__(self, root):
+				Association.TopicRef.__init__(self, root)
+				self.role_type = Association.Type(root.children)
+			
+			def __str__(self):
+				return "%s (type: %s)" % (self.topic_ref.strip('#'), str(self.role_type))
 
+	tree = header.root
 	topics = {}  # dictionary topicid, topicname
 	adj_list = {}  # dictionary node, adjacencies
 
-	topic_nodes = filter(lambda node: isinstance(node, DOM.Element) and node.name == "topic", tree.children)
+	# select all the children nodes
+	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
 	for topic in topic_nodes:
 		topic_id = topic.attributes.get('id')
-
-		topic_children = filter(lambda node: isinstance(node, DOM.Element), topic.children)
-		name_node = filter(lambda node: node.name == "name", topic_children)
-
+		# selects the "name" node among the children nodes of "topic"
+		name_node = filter(lambda node: node.name == "name", topic.children)
+		# checks if there's a "name" node
 		if len(name_node) > 0:
-			value_children = filter(lambda node: isinstance(node, DOM.Element), name_node[0].children)
-			value_node = filter(lambda node: node.name == "value", value_children)[0]
+			# selects the "value" node
+			value_node = filter(lambda node: node.name == "value", name_node[0].children)[0]
+			# creates the entry in the map
 			topics[topic_id] = value_node.children
+
+	# print str(topics)
 
 	# TODO:
 	# here goes the code that traverses the tree
-	# fill topics
+	# fill topics DONE
 	# fill adj_list
+
+	### il grafo non presenta cicli
+	### il nodo g con ruolo di deepening non ha archi in uscita
+	### il nodo q con ruolo di individual non ha archi in uscita che non siano "is_rel"
+	adj_list = {
+		'a': [("is_rel",'b'), ("is_sug",'g'), ("is_rel",'d'),],
+		'b': [],
+		'c': [("is_rel",'d'),("is_rel",'e')],
+		'd': [],
+		'e': [("is_rel",'g'), ("is_rel",'f'), ("is_rel",'q')],
+		'g': [],
+		'f': [("is_item",'q')],
+		'q': [("is_rel",'g')]
+	}
+
+	associations = [Association(_rel) for _rel in filter(lambda node: node.name == "association", tree.children)]
+	
+	# print str(associations)
 
 	try:
 		top_order = topological(adj_list)
@@ -83,7 +137,7 @@ def validate_constraints(header):
 
 	# check constraints on those lists:
 
-	for k, v in adj_list:
+	for k, v in adj_list.iteritems():
 		# if the size of an entry of the adjacency list is greater than
 		# the set based off the 2nd member of the tuple (destination of the edge)
 		# then that means there's at least 1 relation which has the same destination
@@ -93,14 +147,13 @@ def validate_constraints(header):
 		# then, for each element of `sub_v`, if the size of the adjacency list of this element is different than zero,
 		# add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` is not a leaf
-		if not filter(lambda rel, dest: len(adj_list[dest]) != 0, filter(lambda rel, dest: rel == "is_sug", v)):
+		if filter(lambda (rel, dest): rel == "is_sug" and len(adj_list[dest]) != 0, v):
 			raise NotALeafException()
 		# given a certain entry `v` of the adjacency list, choose a sublist `sub_v` containing only "is_item" relations,
 		# then, for each element `e` of `sub_v`, let adj_list[e.dest] as `l`, create a list containing only the "is_rel"
 		# relations `l_is_rel`. If `l_is_rel` has a different size than `l`, then add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` has at least 1 relation which isn't "is_rel"
-		if not filter(lambda rel, dest: len([_v for _k, _v in adj_list[dest] if _v != "is_rel"]) != len(adj_list[dest]),
-		              filter(lambda rel, dest: rel == "is_item", v)):
+		if filter(lambda (rel, dest): rel == "is_item" and len([(re,des) for (re,des) in adj_list[dest] if re != "is_rel"]) != 0, v):
 			raise IsItemException()
 	
 	return True

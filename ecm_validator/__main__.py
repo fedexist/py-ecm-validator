@@ -25,5 +25,5 @@ with codecs.open(filename, "r", "utf-8") as data:
 		print e
 		exit(e.error)
 	print "Validating file %(filename)s..." % locals()
-	print tree(root)
+	# print tree(root)
 	xtm_validator.validate_constraints(root)
