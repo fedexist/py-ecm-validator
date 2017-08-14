@@ -122,6 +122,13 @@ def validate_constraints(header):
 		'q': [("is_rel",'g')]
 	}'''
 	
+	rel_type_aux_dict = {
+		"is_rel": ['linked 1', 'linked 2'],
+		"is_sug": ['main', 'deepening'],
+		"is_req": ['prerequisite', 'subsidiary'],
+		"is_item": ['general', 'individuals']
+	}
+	
 	associations = [Association(_rel) for _rel in filter(lambda node: node.name == "association", tree.children)]
 	
 	# for each graph relation create a representation in an adjacency list
@@ -133,13 +140,6 @@ def validate_constraints(header):
 			continue
 		
 		# Establish the roles in the associations to give a direction to the adjacency list
-		
-		rel_type_aux_dict = {
-			"is_rel": ['linked 1', 'linked 2'],
-			"is_sug": ['main', 'deepening'],
-			"is_req": ['prerequisite', 'subsidiary'],
-			"is_item": ['general', 'individuals']
-		}
 		
 		def fill_adj_list(rel_type):
 			role_1 = str(filter(lambda role: str(role.role_type) == rel_type_aux_dict[rel_type][0], relation.roles)[0])
