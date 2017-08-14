@@ -98,19 +98,14 @@ def validate_constraints(header):
 			# selects the "value" node
 			value_node = filter(lambda node: node.name == "value", name_node[0].children)[0]
 			# creates the entry in the map
-			topics[topic_id] = value_node.children
+			topics[topic_id] = value_node.children[0]
 
-	# print str(topics)
-
-	# TODO:
-	# here goes the code that traverses the tree
-	# fill topics DONE
-	# fill adj_list
+	#print str(topics)
 
 	### il grafo non presenta cicli
 	### il nodo g con ruolo di deepening non ha archi in uscita
 	### il nodo q con ruolo di individual non ha archi in uscita che non siano "is_rel"
-	adj_list = {
+	'''adj_list = {
 		'a': [("is_rel",'b'), ("is_sug",'g'), ("is_rel",'d'),],
 		'b': [],
 		'c': [("is_rel",'d'),("is_rel",'e')],
@@ -119,12 +114,51 @@ def validate_constraints(header):
 		'g': [],
 		'f': [("is_item",'q')],
 		'q': [("is_rel",'g')]
-	}
+	}'''
 
 	associations = [Association(_rel) for _rel in filter(lambda node: node.name == "association", tree.children)]
 	
-	# print str(associations)
-
+	
+	#for each graph relation create a representation in an adjacency list
+	for relation in filter(lambda ass: topics[str(ass.relation_type)] == "is_rel" or topics[str(ass.relation_type)] == "is_sug" or topics[str(ass.relation_type)] == "is_req" or topics[str(ass.relation_type)] == "is_item",associations):
+		#if one of the topics is the generic Primary Notion or Secondary Notion discard the association
+		if topics[relation.roles[0].topic_ref.strip('#')] == 'Primary Notion' or topics[relation.roles[0].topic_ref.strip('#')] == 'Secondary Notion':
+			continue
+		if topics[relation.roles[1].topic_ref.strip('#')] == 'Primary Notion' or topics[relation.roles[1].topic_ref.strip('#')] == 'Secondary Notion':
+			continue
+			
+		#Establish the roles in the associations to give a direction to the adjacency list
+		
+		rel_type_aux_dict = {
+			"is_rel":['linked 1','linked 2'],
+			"is_sug":['main','deepening'],
+			"is_req":['prerequisite','subsidiary'],
+			"is_item":['general','individuals']
+		}
+		
+		def fill_adj_list(rel_type):
+			role_1 = topics[str(filter(lambda role: topics[str(role.role_type)] == rel_type_aux_dict[rel_type][0], relation.roles)[0].topic_ref.strip('#'))]
+			role_2 = topics[filter(lambda role: topics[str(role.role_type)] == rel_type_aux_dict[rel_type][1], relation.roles)[0].topic_ref.strip('#')]
+			if not role_1 in adj_list:
+				adj_list[role_1] = []
+			if not role_2 in adj_list:
+				adj_list[role_2] = []
+			adj_list[role_1].append((rel_type,role_2))
+		
+		if topics[str(relation.relation_type)] == "is_rel":
+			fill_adj_list("is_rel")
+		
+		if topics[str(relation.relation_type)] == "is_sug":
+			fill_adj_list("is_sug")
+			
+		if topics[str(relation.relation_type)] == "is_req":
+			fill_adj_list("is_req")
+			
+		if topics[str(relation.relation_type)] == "is_item":
+			fill_adj_list("is_item")
+			
+	#print adj_list
+	
 	try:
 		top_order = topological(adj_list)
 	except CycleException as e:
