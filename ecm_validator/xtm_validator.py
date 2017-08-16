@@ -92,6 +92,9 @@ def validate_constraints(header):
 	tree = header.root
 	topics = {}  # dictionary topicid, topicname
 	adj_list = {}  # dictionary node, adjacencies
+
+	primary_notion_topic_id = ''
+	secondary_notion_topic_id = ''
 	
 	# select all the children nodes
 	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
@@ -102,10 +105,15 @@ def validate_constraints(header):
 		# checks if there's a "name" node
 		if len(name_node) > 0:
 			# selects the "value" node
-			value_node = filter(lambda node: node.name == "value", name_node[0].children)[0]
+			value = filter(lambda node: node.name == "value", name_node[0].children)[0].children[0]
+			if value == 'Primary Notion':
+				primary_notion_topic_id = topic_id
+			if value == 'Secondary Notion':
+				secondary_notion_topic_id = topic_id
 			# creates the entry in the map
-			topics[topic_id] = value_node.children[0]
-	
+			topics[topic_id] = value
+
+	# print (primary_notion_topic_id + ' ' + secondary_notion_topic_id)
 	# print str(topics)
 	
 	# il grafo non presenta cicli
