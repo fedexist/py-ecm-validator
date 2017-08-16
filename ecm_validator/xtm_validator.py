@@ -77,7 +77,7 @@ def validate_constraints(header):
 			return str(topics.get(self.topic_ref.strip('#')))
 			
 		def __repr__(self):
-				return str(self)
+			return self.topic_ref.strip('#')
 		
 	class Type(TopicRef):
 		def __init__(self, root):

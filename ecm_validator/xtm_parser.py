@@ -323,7 +323,7 @@ def p_child_pcdata(p):
 	"""child : PCDATA"""
 	_parser_trace(p)
 	
-	p[0] = DOM.Pcdata(p[1])
+	p[0] = DOM.Pcdata(_xml_unescape(p[1]))
 
 
 # empty
@@ -444,7 +444,12 @@ def _xml_unescape(s):
 ################################
 # INTERFACE
 
-def xml_parse(data, debug=False):
+def xml_parse(data, debug=None):
+	
+	if debug is None:
+		debug = {}
+	for k, v in debug.items():
+		_DEBUG[k] = v
 	
 	_debug_header('INPUT')
 	_debug_print_('INPUT', data)
@@ -464,7 +469,7 @@ def xml_parse(data, debug=False):
 	parser = yacc.yacc()
 	
 	_debug_header('PARSER')
-	root = parser.parse(data, lexer=xml_lexer.lexer, debug=debug)
+	root = parser.parse(data, lexer=xml_lexer.lexer)
 	_debug_footer('PARSER')
 	
 	_debug_header('OUTPUT')

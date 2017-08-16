@@ -9,12 +9,34 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 parser = argparse.ArgumentParser("Arguments for parser")
-parser.add_argument("--debug", help="Debug flag", action="store_true")
+parser.add_argument("-d", "--debug", help="Debug flags, accepted in whatever order:'i' for input debug;"
+                                          "'l' for lexer debug; 'p' for parser debug;'o' for output debug. "
+                                          "Example '-d iplo', '-d olpi'.", type=str)
 parser.add_argument("-f", "--file", help="Input file", required=True)
 
+accepted_debug_flags = ["i", "l", "p", "o"]
+
 args = parser.parse_args()
-debug = args.debug
+if args.debug is not None:
+	debug_flags = list(args.debug)
+else:
+	debug_flags = []
+
 filename = args.file
+
+flags = filter(lambda _flag: _flag in accepted_debug_flags, debug_flags)
+
+DEBUG = {
+	'i': 'INPUT',
+	'l': 'LEXER',
+	'p': 'PARSER',
+	'o': 'OUTPUT'
+}
+debug = {}
+
+if debug_flags and flags:
+	for _flag in flags:
+		debug[DEBUG[_flag]] = True
 
 with codecs.open(filename, "r", "utf-8") as data:
 	print "Parsing file %(filename)s..." % locals()
