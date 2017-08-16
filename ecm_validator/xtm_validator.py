@@ -48,9 +48,29 @@ class IsItemException(ValidationError):
 	pass
 
 
+class PrimaryInboundException(ValidationError):
+	def __init__(self):
+		self.message = "Inbound Exception"
+	
+	def __str__(self):
+		return self.message
+		
+class PrimaryUnReqException(ValidationError):
+	def __init__(self):
+		self.message = "UnReq Exception"
+	
+	def __str__(self):
+		return self.message
+	
+class SecondaryNoInboundException(ValidationError):
+	def __init__(self):
+		self.message = "Inbound Exception"
+	
+	def __str__(self):
+		return self.message
+	
 def list_children(root, name):
 	return filter(lambda child: child.name == name, root.children)
-
 
 # TODO: Occurences handling
 def validate_constraints(header):
@@ -78,6 +98,13 @@ def validate_constraints(header):
 			
 		def __repr__(self):
 			return self.topic_ref.strip('#')
+			
+		def __hash__(self):
+			return hash(self.topic_ref)
+
+		def __eq__(self, other):
+			if not isinstance(other, type(self)): return NotImplemented
+			return self.topic_ref == other.topic_ref
 		
 	class Type(TopicRef):
 		def __init__(self, root):
@@ -153,8 +180,8 @@ def validate_constraints(header):
 		# Establish the roles in the associations to give a direction to the adjacency list
 		
 		def fill_adj_list(rel_type):
-			role_1 = str(filter(lambda role: str(role.role_type) == rel_type_aux_dict[rel_type][0], relation.roles)[0])
-			role_2 = str(filter(lambda role: str(role.role_type) == rel_type_aux_dict[rel_type][1], relation.roles)[0])
+			role_1 = filter(lambda role: str(role.role_type) == rel_type_aux_dict[rel_type][0], relation.roles)[0]
+			role_2 = filter(lambda role: str(role.role_type) == rel_type_aux_dict[rel_type][1], relation.roles)[0]
 			
 			if role_1 not in adj_list:
 				adj_list[role_1] = []
@@ -170,10 +197,26 @@ def validate_constraints(header):
 	
 	top_order = topological(adj_list)
 	
-	primary_notions, secondary_notions, deepening, individual = [], [], [], []
+	supposed_secondary = set([])
 	
-	# traverse top_order to fill aforementioned lists
-	
+	for elem in top_order:
+		#if element has not been put among the secondary notions by a previous one, it is a primary notion
+		if elem not in supposed_secondary:
+			#This should be a Primary Notion, if it's not on the list of Primary Notions raise error as it is a Secondary notion with no inbound arcs
+			if repr(elem) not in set(primary_secondary_notions["Primary Notion"]):
+				raise SecondaryNoInboundException
+			#If a Primary notion has an outbound arc that is not Is required raise Error
+			if filter(lambda (rel,target) : rel != 'is_req',adj_list[elem]):
+				raise PrimaryUnReqException
+			#print filter(lambda a: a, topics_occurrences[repr(elem)]) da utilizzare sui vincoli delle occurrence
+		for (rel, target) in adj_list[elem]:
+			supposed_secondary.add(target)
+			#This should be a Secondary Notion, if it's not on the list of Secondary Notions raise error as it is a Primary notion with inbound arcs
+			if repr(target) not in set(primary_secondary_notions["Secondary Notion"]):
+				raise PrimaryInboundException
+			#print filter(lambda a: a, topics_occurrences[repr(target)])
+		
+		
 	# check constraints on those lists:
 	
 	for k, v in adj_list.iteritems():
