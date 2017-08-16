@@ -69,10 +69,10 @@ def validate_constraints(header):
 		
 		class TopicRef:
 			def __init__(self, root):
-				self.topic_ref = filter(lambda node: node.name == "topicRef", root.children)[0].attributes['href']
+				self.topic_ref = [t_ref.attributes['href'] for t_ref in filter(lambda node: node.name == "topicRef", root.children)]
 			
 			def __str__(self):
-				return str(topics.get(self.topic_ref.strip('#')))
+				return str([(topics.get(single_ref.strip('#'))) for single_ref in self.topic_ref])
 			
 			def __repr__(self):
 				return str(self)
@@ -95,13 +95,21 @@ def validate_constraints(header):
 
 	primary_notion_topic_id = ''
 	secondary_notion_topic_id = ''
-	
+	primary_secondary_notions = {"Primary Notion": [], "Secondary Notion": []}
+
 	# select all the children nodes
 	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
 	for topic in topic_nodes:
 		topic_id = topic.attributes.get('id')
 		# selects the "name" node among the children nodes of "topic"
 		name_node = filter(lambda node: node.name == "name", topic.children)
+		instance_node = filter(lambda node: node.name == "instanceOf", topic.children)
+		if len(instance_node) > 0:
+			for ref in Association.TopicRef(instance_node[0]).topic_ref:
+				if primary_notion_topic_id == ref.strip('#'):
+					primary_secondary_notions["Primary Notion"].append(topic_id)
+				elif secondary_notion_topic_id == ref.strip('#'):
+					primary_secondary_notions["Secondary Notion"].append(topic_id)
 		# checks if there's a "name" node
 		if len(name_node) > 0:
 			# selects the "value" node
@@ -113,7 +121,7 @@ def validate_constraints(header):
 			# creates the entry in the map
 			topics[topic_id] = value
 
-	# print (primary_notion_topic_id + ' ' + secondary_notion_topic_id)
+	# print primary_secondary_notions
 	# print str(topics)
 	
 	# il grafo non presenta cicli
