@@ -48,6 +48,10 @@ class IsItemException(ValidationError):
 	pass
 
 
+def list_children(root, name):
+	return filter(lambda child: child.name == name, root.children)
+
+
 # TODO: Occurences handling
 def validate_constraints(header):
 	"""Validates DOM starting from header.root
@@ -57,40 +61,36 @@ def validate_constraints(header):
 	
 	class Association:
 		def __init__(self, root):
-			self.relation_type = self.Type(root.children)
-			roles = filter(lambda node: node.name == "role", root.children)
-			self.roles = (self.Role(roles[0]), self.Role(roles[1]))
-		
-		# def __str__(self):
-		#	return "%s of type %s" % (self.roles, str(self.relation_type))
-		
-		# def __repr__(self):
-		#	return str(self)
-		
-		class TopicRef:
-			def __init__(self, root):
-				self.topic_ref = [t_ref.attributes['href'] for t_ref in filter(lambda node: node.name == "topicRef", root.children)]
+			self.relation_type = Type(root)
+			roles = list_children(root, "role")
+			self.roles = (Role(roles[0]), Role(roles[1]))
 			
-			def __str__(self):
-				return str([(topics.get(single_ref.strip('#'))) for single_ref in self.topic_ref])
+	class InstanceOf:
+		def __init__(self, root):
+			self.topic_refs = [TopicRef(t_ref) for t_ref in root.children]
+		
+	class TopicRef:
+		def __init__(self, root):
+			self.topic_ref = root.attributes['href']
 			
-			def __repr__(self):
+		def __str__(self):
+			return str(topics.get(self.topic_ref.strip('#')))
+			
+		def __repr__(self):
 				return str(self)
 		
-		class Type(TopicRef):
-			def __init__(self, root):
-				Association.TopicRef.__init__(self, filter(lambda node: node.name == "type", root)[0])
+	class Type(TopicRef):
+		def __init__(self, root):
+			TopicRef.__init__(self, list_children(root, "type")[0].children[0])
 		
-		class Role(TopicRef):
-			def __init__(self, root):
-				Association.TopicRef.__init__(self, root)
-				self.role_type = Association.Type(root.children)
+	class Role(TopicRef):
+		def __init__(self, root):
+			TopicRef.__init__(self, list_children(root, "topicRef")[0])
+			self.role_type = Type(root)
 			
-			# def __str__(self):
-			#	return "%s (type: %s)" % (str(topics.get(self.topic_ref.strip('#'))), str(self.role_type))
-	
 	tree = header.root
 	topics = {}  # dictionary topicid, topicname
+	topics_occurrences = {}
 	adj_list = {}  # dictionary node, adjacencies
 
 	primary_notion_topic_id = ''
@@ -102,41 +102,37 @@ def validate_constraints(header):
 	for topic in topic_nodes:
 		topic_id = topic.attributes.get('id')
 		# selects the "name" node among the children nodes of "topic"
-		name_node = filter(lambda node: node.name == "name", topic.children)
-		instance_node = filter(lambda node: node.name == "instanceOf", topic.children)
-		if len(instance_node) > 0:
-			for ref in Association.TopicRef(instance_node[0]).topic_ref:
-				if primary_notion_topic_id == ref.strip('#'):
+		name_node = list_children(topic, "name")
+		occurrences = list_children(topic, "occurrence")
+		instance_node = list_children(topic, "instanceOf")
+		
+		if occurrences:
+			if topics_occurrences.get(topic_id):
+				topics_occurrences[topic_id] += [Type(occurrence) for occurrence in occurrences]
+			else:
+				topics_occurrences[topic_id] = [Type(occurrence) for occurrence in occurrences]
+		
+		if instance_node:
+			instances = InstanceOf(instance_node[0])
+			for ref in instances.topic_refs:
+				if primary_notion_topic_id == ref.topic_ref.strip('#'):
 					primary_secondary_notions["Primary Notion"].append(topic_id)
-				elif secondary_notion_topic_id == ref.strip('#'):
+				elif secondary_notion_topic_id == ref.topic_ref.strip('#'):
 					primary_secondary_notions["Secondary Notion"].append(topic_id)
 		# checks if there's a "name" node
-		if len(name_node) > 0:
+		if name_node:
 			# selects the "value" node
-			value = filter(lambda node: node.name == "value", name_node[0].children)[0].children[0]
+			value = list_children(name_node[0], "value")[0].children[0]
 			if value == 'Primary Notion':
 				primary_notion_topic_id = topic_id
-			if value == 'Secondary Notion':
+			elif value == 'Secondary Notion':
 				secondary_notion_topic_id = topic_id
 			# creates the entry in the map
 			topics[topic_id] = value
 
-	# print primary_secondary_notions
-	# print str(topics)
-	
 	# il grafo non presenta cicli
 	# il nodo g con ruolo di deepening non ha archi in uscita
 	# il nodo q con ruolo di individual non ha archi in uscita che non siano "is_rel"
-	'''adj_list = {
-		'a': [("is_rel",'b'), ("is_sug",'g'), ("is_rel",'d'),],
-		'b': [],
-		'c': [("is_rel",'d'),("is_rel",'e')],
-		'd': [],
-		'e': [("is_rel",'g'), ("is_rel",'f'), ("is_rel",'q')],
-		'g': [],
-		'f': [("is_item",'q')],
-		'q': [("is_rel",'g')]
-	}'''
 	
 	rel_type_aux_dict = {
 		"is_rel": ['linked 1', 'linked 2'],
@@ -145,14 +141,13 @@ def validate_constraints(header):
 		"is_item": ['general', 'individuals']
 	}
 	
-	associations = [Association(_rel) for _rel in filter(lambda node: node.name == "association", tree.children)]
+	associations = [Association(_rel) for _rel in list_children(tree, "association")]
 	
 	# for each graph relation create a representation in an adjacency list
 	for relation in filter(lambda ass: str(ass.relation_type) in rel_type_aux_dict.keys(), associations):
-		# if one of the topics is the generic Primary Notion or Secondary Notion discard the association
 		
-		if str(relation.roles[0]) in ['Primary Notion', 'Secondary Notion'] \
-				or str(relation.roles[1]) in ['Primary Notion', 'Secondary Notion']:
+		# if one of the topics is the generic Primary Notion or Secondary Notion discard the association
+		if any([str(_role) in ['Primary Notion', 'Secondary Notion'] for _role in relation.roles]):
 			continue
 		
 		# Establish the roles in the associations to give a direction to the adjacency list
@@ -170,6 +165,8 @@ def validate_constraints(header):
 		fill_adj_list(str(relation.relation_type))
 	
 	# print adj_list
+	# print topics_occurrences
+	# print primary_secondary_notions
 	
 	top_order = topological(adj_list)
 	

@@ -28,5 +28,6 @@ with codecs.open(filename, "r", "utf-8") as data:
 	# print tree(root)
 	try:
 		validate_constraints(root)
+		print "File validated. No error found!"
 	except ValidationError as e:
 		print e
