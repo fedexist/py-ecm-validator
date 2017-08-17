@@ -45,7 +45,7 @@ with codecs.open(filename, "r", "utf-8") as data:
 		root = xml_parse(formatted_data, debug=debug)
 	except XmlSyntaxError as e:
 		print e
-		exit(e.error)
+		exit(e.error_code)
 	print "Validating file %(filename)s..." % locals()
 	# print tree(root)
 	try:
@@ -53,3 +53,4 @@ with codecs.open(filename, "r", "utf-8") as data:
 		print "File validated. No error found!"
 	except ValidationError as e:
 		print e
+		exit(e.error_code)

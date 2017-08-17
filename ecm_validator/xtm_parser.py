@@ -176,7 +176,7 @@ class XmlLexer:
 
 class XmlSyntaxError(Exception):
 	def __init__(self, msg, t):
-		self.error = -2
+		self.error_code = -2
 		self.message = msg
 		t.lexer.skip(1)
 		
