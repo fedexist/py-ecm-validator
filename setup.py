@@ -9,7 +9,7 @@ with open(requirements_path) as requirements_file:
 
 setup(
 	name='py-ecm_validator',
-	version='0.0.1',
+	version='0.1.0',
 	packages=['ecm_validator'],
 	url='',
 	license='',

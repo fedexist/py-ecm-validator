@@ -181,7 +181,7 @@ class XmlSyntaxError(Exception):
 		t.lexer.skip(1)
 		
 	def __str__(self):
-		return "%s\nExiting with error code: %s" % (self.message, str(self.error))
+		return "%s\nExiting with error code: %s" % (self.message, str(self.error_code))
 	
 ################################
 # PARSER

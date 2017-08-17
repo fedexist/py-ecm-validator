@@ -11,6 +11,7 @@ PRIMARY_UN_REQ = -8
 SECONDARY_NO_INCOMING = -9
 PRIMARY_UN_DESCRIPTION = -10
 SECONDARY_NO_DESCRIPTION = -11
+NO_MANDATORY_OCC = -12
 
 
 def topological(graph):
@@ -129,6 +130,21 @@ class SecondaryNoDescriptionException(ValidationError):
 	def __str__(self):
 		return self.message
 
+primary_secondary_notions = {"Primary Notion": [], "Secondary Notion": []}
+
+
+class NoMandatoryOccurrences(ValidationError):
+	def __init__(self, value):
+		ValidationError.__init__(self, NO_MANDATORY_OCC)
+		for k, v in primary_secondary_notions.items():
+			if repr(value) in v:
+				self.notion = k
+		self.message = "NoMandatoryOccException: %s '%s' does not have Description or Prerequisite occurrences" \
+		               % (str(self.notion), str(value))
+	
+	def __str__(self):
+		return self.message
+
 
 def list_children(root, name):
 	return filter(lambda child: child.name == name, root.children)
@@ -185,7 +201,6 @@ def validate_constraints(header):
 	
 	primary_notion_topic_id = ''
 	secondary_notion_topic_id = ''
-	primary_secondary_notions = {"Primary Notion": [], "Secondary Notion": []}
 	
 	# select all the children nodes
 	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
@@ -263,6 +278,11 @@ def validate_constraints(header):
 	supposed_secondary = set([])
 	
 	for elem in top_order:
+		
+		# if not topics_occurrences.get(repr(elem)) or len(filter(lambda occ: str(occ) in ["Description", "prerequisite"],
+		#              list(set(topics_occurrences[repr(elem)])))) < 2:
+		#	raise NoMandatoryOccurrences(elem)
+		
 		# if element has not been put among the secondary notions by a previous one, it is a primary notion
 		if elem not in supposed_secondary:
 			# This should be a Primary Notion, if it's not on the list of Primary Notions
