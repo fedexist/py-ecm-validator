@@ -37,34 +37,60 @@ class CycleException(ValidationError):
 
 # TODO: define Exceptions behaviour
 class NotUniqueException(ValidationError):
-	pass
+	def __init__(self, value):
+		self.message = "NotUniqueException: Node %s has two relations with the same target node" % str(value)
+	
+	def __str__(self):
+		return self.message
 
 
 class NotALeafException(ValidationError):
-	pass
+	def __init__(self, value):
+		self.message = "NotALeafException: Node %s has a 'is_sug' relation with a non-leaf node" % str(value)
+	
+	def __str__(self):
+		return self.message
 
 
 class IsItemException(ValidationError):
-	pass
+	def __init__(self, value):
+		self.message = "IsItemException: Node %s has a 'is_item' relation with a node with outcoming relations of non-'is_rel' type" % str(value)
+	
+	def __str__(self):
+		return self.message
 
 
-class PrimaryInboundException(ValidationError):
-	def __init__(self):
-		self.message = "Inbound Exception"
+class PrimaryIncomingException(ValidationError):
+	def __init__(self, value):
+		self.message = "PrimaryIncomingException: Node %s is a primary notion but has incoming arcs" % str(value)
 	
 	def __str__(self):
 		return self.message
 		
 class PrimaryUnReqException(ValidationError):
-	def __init__(self):
-		self.message = "UnReq Exception"
+	def __init__(self, value):
+		self.message = "PrimaryUnReqException: Node %s is a primary notion but has outcoming arcs of non-'is_req' type" % str(value)
 	
 	def __str__(self):
 		return self.message
 	
-class SecondaryNoInboundException(ValidationError):
-	def __init__(self):
-		self.message = "Inbound Exception"
+class SecondaryNoIncomingException(ValidationError):
+	def __init__(self, value):
+		self.message = "SecondaryNoIncomingException: Node %s is a secondary notion but has no incoming arcs" % str(value)
+	
+	def __str__(self):
+		return self.message
+		
+class PrimaryUnDescriptionException(ValidationError):
+	def __init__(self, value):
+		self.message = "PrimaryUnDescriptionException: Node %s is a primary notion but has occurrences of non-'Description' type" % str(value)
+	
+	def __str__(self):
+		return self.message
+		
+class SecondaryNoDescriptionException(ValidationError):
+	def __init__(self, value):
+		self.message = "SecondaryNoDescriptionException: Node %s is a secondary notion but has no occurrences of 'Description' type" % str(value)
 	
 	def __str__(self):
 		return self.message
@@ -72,7 +98,6 @@ class SecondaryNoInboundException(ValidationError):
 def list_children(root, name):
 	return filter(lambda child: child.name == name, root.children)
 
-# TODO: Occurences handling
 def validate_constraints(header):
 	"""Validates DOM starting from header.root
 	:param header -- Xml header returned from xml_parse
@@ -202,20 +227,21 @@ def validate_constraints(header):
 	for elem in top_order:
 		#if element has not been put among the secondary notions by a previous one, it is a primary notion
 		if elem not in supposed_secondary:
-			#This should be a Primary Notion, if it's not on the list of Primary Notions raise error as it is a Secondary notion with no inbound arcs
+			#This should be a Primary Notion, if it's not on the list of Primary Notions raise error as it is a Secondary notion with no incoming arcs
 			if repr(elem) not in set(primary_secondary_notions["Primary Notion"]):
-				raise SecondaryNoInboundException
-			#If a Primary notion has an outbound arc that is not Is required raise Error
+				raise SecondaryNoIncomingException(elem)
+			#If a Primary notion has an outcoming arc that is not Is required raise Error
 			if filter(lambda (rel,target) : rel != 'is_req',adj_list[elem]):
-				raise PrimaryUnReqException
-			#print filter(lambda a: a, topics_occurrences[repr(elem)]) da utilizzare sui vincoli delle occurrence
+				raise PrimaryUnReqException(elem)
+			#If a Primary notion has an occurrence which is not Description raise Error
+			if topics_occurrences.get(repr(elem)):
+				if filter(lambda occ: str(occ) != 'Description', topics_occurrences[repr(elem)]):
+					raise PrimaryUnDescriptionException(target)
 		for (rel, target) in adj_list[elem]:
 			supposed_secondary.add(target)
-			#This should be a Secondary Notion, if it's not on the list of Secondary Notions raise error as it is a Primary notion with inbound arcs
+			#This should be a Secondary Notion, if it's not on the list of Secondary Notions raise error as it is a Primary notion with incoming arcs
 			if repr(target) not in set(primary_secondary_notions["Secondary Notion"]):
-				raise PrimaryInboundException
-			#print filter(lambda a: a, topics_occurrences[repr(target)])
-		
+				raise PrimaryIncomingException(target)
 		
 	# check constraints on those lists:
 	
@@ -230,11 +256,11 @@ def validate_constraints(header):
 		# add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` is not a leaf
 		if filter(lambda (rel, dest): rel == "is_sug" and len(adj_list[dest]) != 0, v):
-			raise NotALeafException()
+			raise NotALeafException(k)
 		# given a certain entry `v` of the adjacency list, choose a sublist `sub_v` containing only "is_item" relations,
 		# then, for each element `e` of `sub_v`, let adj_list[e.dest] as `l`, create a list containing only the "is_rel"
 		# relations `l_is_rel`. If `l_is_rel` has a different size than `l`, then add it to the output.
 		# If the output is not empty, that means at least 1 element of `sub_v` has at least 1 relation which isn't "is_rel"
 		if filter(lambda (rel, dest): rel == "is_item" and
 					len([(re, des) for (re, des) in adj_list[dest] if re != "is_rel"]) != 0, v):
-			raise IsItemException()
+			raise IsItemException(k)
