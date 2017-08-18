@@ -15,6 +15,10 @@ py-ecm-validator is a Python 2.7 module used to validate Educational Concept Map
 **Example**:
 
 ``` 
+    # No debugging
+    python -m ecm_validator -f file.xtm
+    
+    
     # Validate file.xtm debugging the parser
     python -m ecm_validator -f file.xtm -d p
 ```

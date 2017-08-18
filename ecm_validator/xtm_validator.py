@@ -13,6 +13,7 @@ PRIMARY_UN_DESCRIPTION = -10
 SECONDARY_NO_DESCRIPTION = -11
 NO_MANDATORY_OCC = -12
 
+
 # Sort topologically the adjacency list representing the graph, if it fails raise error as there is a cycle
 def topological(graph):
 	gray, black = 0, 1
@@ -148,6 +149,7 @@ class NoMandatoryOccurrences(ValidationError):
 def list_children(root, name):
 	return filter(lambda child: child.name == name, root.children)
 
+
 def validate_constraints(header):
 	"""Validates DOM starting from header.root
 	:param header -- Xml header returned from xml_parse
@@ -199,7 +201,7 @@ def validate_constraints(header):
 	primary_notion_topic_id = ''
 	secondary_notion_topic_id = ''
 	
-	## Fill the Auxiliary Data Structures from the Document Object Model
+	# Fill the Auxiliary Data Structures from the Document Object Model
 	
 	# select all the children nodes
 	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
@@ -234,7 +236,7 @@ def validate_constraints(header):
 			# creates the entry in the map
 			topics[topic_id] = value
 	
-	## Fill the adjacency list from the Auxiliary Data Structures
+	# Fill the adjacency list from the Auxiliary Data Structures
 	
 	rel_type_aux_dict = {
 		"is_rel": ['linked 1', 'linked 2'],
@@ -266,8 +268,7 @@ def validate_constraints(header):
 		
 		fill_adj_list(str(relation.relation_type))
 	
-
-	## Check constraints
+	# Check constraints
 	
 	top_order = topological(adj_list)
 	
@@ -294,7 +295,7 @@ def validate_constraints(header):
 			# as it is a Primary notion with incoming arcs
 			if repr(target) not in set(primary_secondary_notions["Secondary Notion"]):
 				raise PrimaryIncomingException(target)
-			#if a Secondary Notion lacks Decription and prerequisite occurrences raise error	
+			# if a Secondary Notion lacks Description and prerequisite occurrences raise error
 			if not topics_occurrences.get(repr(target)) or len(filter(lambda occ: str(occ) in ["Description", "prerequisite"],
 		              list(set(topics_occurrences[repr(target)])))) < 2:
 				raise NoMandatoryOccurrences(target)
