@@ -204,8 +204,7 @@ def validate_constraints(header):
 	# Fill the Auxiliary Data Structures from the Document Object Model
 	
 	# select all the children nodes
-	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
-	for topic in topic_nodes:
+	for topic in list_children(tree, "topic"):
 		topic_id = topic.attributes.get('id')
 		# selects the "name" node among the children nodes of "topic"
 		name_node = list_children(topic, "name")
