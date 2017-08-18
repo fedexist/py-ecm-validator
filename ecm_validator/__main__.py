@@ -40,6 +40,7 @@ if debug_flags and flags:
 
 with codecs.open(filename, "r", "utf-8") as data:
 	print "Parsing file %(filename)s..." % locals()
+	# Remove comments from the xml
 	formatted_data = re.sub(ur'<!--.*-->|<!--.*\n.*-->', '', data.read(), re.UNICODE)
 	try:
 		root = xml_parse(formatted_data, debug=debug)

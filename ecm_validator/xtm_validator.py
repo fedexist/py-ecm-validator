@@ -13,7 +13,7 @@ PRIMARY_UN_DESCRIPTION = -10
 SECONDARY_NO_DESCRIPTION = -11
 NO_MANDATORY_OCC = -12
 
-
+# Sort topologically the adjacency list representing the graph, if it fails raise error as there is a cycle
 def topological(graph):
 	gray, black = 0, 1
 	order, enter, state = deque(), set(graph), {}
@@ -50,7 +50,6 @@ class CycleException(ValidationError):
 		return self.message
 
 
-# TODO: define Exceptions behaviour
 class NotUniqueException(ValidationError):
 	def __init__(self, value):
 		ValidationError.__init__(self, NOT_UNIQUE)
@@ -149,8 +148,6 @@ class NoMandatoryOccurrences(ValidationError):
 def list_children(root, name):
 	return filter(lambda child: child.name == name, root.children)
 
-
-# TODO: Occurences handling
 def validate_constraints(header):
 	"""Validates DOM starting from header.root
 	:param header -- Xml header returned from xml_parse
@@ -202,6 +199,8 @@ def validate_constraints(header):
 	primary_notion_topic_id = ''
 	secondary_notion_topic_id = ''
 	
+	## Fill the Auxiliary Data Structures from the Document Object Model
+	
 	# select all the children nodes
 	topic_nodes = filter(lambda node: node.name == "topic", tree.children)
 	for topic in topic_nodes:
@@ -235,9 +234,7 @@ def validate_constraints(header):
 			# creates the entry in the map
 			topics[topic_id] = value
 	
-	# il grafo non presenta cicli
-	# il nodo g con ruolo di deepening non ha archi in uscita
-	# il nodo q con ruolo di individual non ha archi in uscita che non siano "is_rel"
+	## Fill the adjacency list from the Auxiliary Data Structures
 	
 	rel_type_aux_dict = {
 		"is_rel": ['linked 1', 'linked 2'],
@@ -269,20 +266,15 @@ def validate_constraints(header):
 		
 		fill_adj_list(str(relation.relation_type))
 	
-	# print adj_list
-	# print topics_occurrences
-	# print primary_secondary_notions
+
+	## Check constraints
 	
 	top_order = topological(adj_list)
 	
 	supposed_secondary = set([])
 	
 	for elem in top_order:
-		
-		if not topics_occurrences.get(repr(elem)) or len(filter(lambda occ: str(occ) in ["Description", "prerequisite"],
-		              list(set(topics_occurrences[repr(elem)])))) < 2:
-			raise NoMandatoryOccurrences(elem)
-		
+				
 		# if element has not been put among the secondary notions by a previous one, it is a primary notion
 		if elem not in supposed_secondary:
 			# This should be a Primary Notion, if it's not on the list of Primary Notions
@@ -302,6 +294,10 @@ def validate_constraints(header):
 			# as it is a Primary notion with incoming arcs
 			if repr(target) not in set(primary_secondary_notions["Secondary Notion"]):
 				raise PrimaryIncomingException(target)
+			#if a Secondary Notion lacks Decription and prerequisite occurrences raise error	
+			if not topics_occurrences.get(repr(target)) or len(filter(lambda occ: str(occ) in ["Description", "prerequisite"],
+		              list(set(topics_occurrences[repr(target)])))) < 2:
+				raise NoMandatoryOccurrences(target)
 	
 	# check constraints on those lists:
 	
