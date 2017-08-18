@@ -114,7 +114,7 @@ class PrimaryUnDescriptionException(ValidationError):
 	def __init__(self, value):
 		ValidationError.__init__(self, PRIMARY_UN_DESCRIPTION)
 		self.message = "PrimaryUnDescriptionException: Node %s is a primary notion " \
-		               "but has occurrences of non-'Description' type" % str(value)
+		               "but has occurrences of non-'Description' non-'prerequisite' type" % str(value)
 	
 	def __str__(self):
 		return self.message
@@ -284,9 +284,9 @@ def validate_constraints(header):
 			# If a Primary notion has an outcoming arc that is not Is required raise Error
 			if filter(lambda (_rel, _target): _rel != 'is_req', adj_list[elem]):
 				raise PrimaryUnReqException(elem)
-			# If a Primary notion has an occurrence which is not Description raise Error
+			# If a Primary notion has an occurrence which is not Description or prerequisite raise Error
 			if topics_occurrences.get(repr(elem)):
-				if filter(lambda occ: str(occ) != 'Description', topics_occurrences[repr(elem)]):
+				if filter(lambda occ: str(occ) not in ["Description", "prerequisite"], topics_occurrences[repr(elem)]):
 					raise PrimaryUnDescriptionException(elem)
 		for (rel, target) in adj_list[elem]:
 			supposed_secondary.add(target)
