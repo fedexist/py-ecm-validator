@@ -279,9 +279,9 @@ def validate_constraints(header):
 	
 	for elem in top_order:
 		
-		# if not topics_occurrences.get(repr(elem)) or len(filter(lambda occ: str(occ) in ["Description", "prerequisite"],
-		#              list(set(topics_occurrences[repr(elem)])))) < 2:
-		#	raise NoMandatoryOccurrences(elem)
+		if not topics_occurrences.get(repr(elem)) or len(filter(lambda occ: str(occ) in ["Description", "prerequisite"],
+		              list(set(topics_occurrences[repr(elem)])))) < 2:
+			raise NoMandatoryOccurrences(elem)
 		
 		# if element has not been put among the secondary notions by a previous one, it is a primary notion
 		if elem not in supposed_secondary:

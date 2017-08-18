@@ -8,7 +8,7 @@ with open(requirements_path) as requirements_file:
 
 
 setup(
-	name='py-ecm_validator',
+	name='ecm-validator',
 	version='0.1.0',
 	packages=['ecm_validator'],
 	url='',
@@ -16,5 +16,6 @@ setup(
 	author='Federico "fedexist" D\'Ambrosio',
 	author_email='fedexist@gmail.com',
 	description="XTM parser and validator",
-	install_requires=requires
+	install_requires=requires,
+	scripts=['ecm_validator\\xtm_validator.py', 'ecm_validator\\xtm_parser.py']
 )
