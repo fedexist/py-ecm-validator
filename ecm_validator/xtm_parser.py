@@ -444,7 +444,7 @@ def _xml_unescape(s):
 ################################
 # INTERFACE
 
-def xml_parse(data, debug=None):
+def xml_parse(data, debug=None, outputdir="./"):
 	
 	if debug is None:
 		debug = {}
@@ -466,7 +466,7 @@ def xml_parse(data, debug=None):
 	global tokens
 	tokens = XmlLexer.tokens
 	
-	parser = yacc.yacc()
+	parser = yacc.yacc(outputdir=outputdir)
 	
 	_debug_header('PARSER')
 	root = parser.parse(data, lexer=xml_lexer.lexer)

@@ -4,6 +4,7 @@ import sys
 import codecs
 import argparse
 import re
+import os
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -43,7 +44,7 @@ with codecs.open(filename, "r", "utf-8") as data:
 	# Remove comments from the xml
 	formatted_data = re.sub(ur'<!--.*-->|<!--.*\n.*-->', '', data.read(), re.UNICODE)
 	try:
-		root = xml_parse(formatted_data, debug=debug)
+		root = xml_parse(formatted_data, debug=debug, outputdir=os.path.dirname(filename))
 	except XmlSyntaxError as e:
 		print e
 		exit(e.error_code)
