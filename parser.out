@@ -1,0 +1,476 @@
+Created by PLY version 3.10 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> header
+Rule 1     header -> HEADEROPEN TAGATTRNAME attributes HEADERCLOSE root
+Rule 2     root -> element
+Rule 3     root -> element PCDATA
+Rule 4     root -> PCDATA element
+Rule 5     root -> PCDATA element PCDATA
+Rule 6     element -> opentag children closetag
+Rule 7     element -> lonetag
+Rule 8     opentag -> OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE
+Rule 9     closetag -> CLOSETAGOPEN TAGATTRNAME TAGCLOSE
+Rule 10    lonetag -> OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE
+Rule 11    attributes -> attribute attributes
+Rule 12    attributes -> empty
+Rule 13    attribute -> TAGATTRNAME ATTRASSIGN attrvalue
+Rule 14    attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE
+Rule 15    attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE
+Rule 16    children -> child children
+Rule 17    children -> empty
+Rule 18    child -> element
+Rule 19    child -> PCDATA
+Rule 20    empty -> <empty>
+
+Terminals, with rules where they appear
+
+ATTRASSIGN           : 13
+ATTRVALUE1CLOSE      : 14
+ATTRVALUE1OPEN       : 14
+ATTRVALUE1STRING     : 14
+ATTRVALUE2CLOSE      : 15
+ATTRVALUE2OPEN       : 15
+ATTRVALUE2STRING     : 15
+CLOSETAGOPEN         : 9
+HEADERCLOSE          : 1
+HEADEROPEN           : 1
+LONETAGCLOSE         : 10
+OPENTAGOPEN          : 8 10
+PCDATA               : 3 4 5 5 19
+TAGATTRNAME          : 1 8 9 10 13
+TAGCLOSE             : 8 9
+error                : 
+
+Nonterminals, with rules where they appear
+
+attribute            : 11
+attributes           : 1 8 10 11
+attrvalue            : 13
+child                : 16
+children             : 6 16
+closetag             : 6
+element              : 2 3 4 5 18
+empty                : 12 17
+header               : 0
+lonetag              : 7
+opentag              : 6
+root                 : 1
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . header
+    (1) header -> . HEADEROPEN TAGATTRNAME attributes HEADERCLOSE root
+
+    HEADEROPEN      shift and go to state 1
+
+    header                         shift and go to state 2
+
+state 1
+
+    (1) header -> HEADEROPEN . TAGATTRNAME attributes HEADERCLOSE root
+
+    TAGATTRNAME     shift and go to state 3
+
+
+state 2
+
+    (0) S' -> header .
+
+
+
+state 3
+
+    (1) header -> HEADEROPEN TAGATTRNAME . attributes HEADERCLOSE root
+    (11) attributes -> . attribute attributes
+    (12) attributes -> . empty
+    (13) attribute -> . TAGATTRNAME ATTRASSIGN attrvalue
+    (20) empty -> .
+
+    TAGATTRNAME     shift and go to state 4
+    HEADERCLOSE     reduce using rule 20 (empty -> .)
+
+    attributes                     shift and go to state 6
+    empty                          shift and go to state 7
+    attribute                      shift and go to state 5
+
+state 4
+
+    (13) attribute -> TAGATTRNAME . ATTRASSIGN attrvalue
+
+    ATTRASSIGN      shift and go to state 8
+
+
+state 5
+
+    (11) attributes -> attribute . attributes
+    (11) attributes -> . attribute attributes
+    (12) attributes -> . empty
+    (13) attribute -> . TAGATTRNAME ATTRASSIGN attrvalue
+    (20) empty -> .
+
+    TAGATTRNAME     shift and go to state 4
+    HEADERCLOSE     reduce using rule 20 (empty -> .)
+    TAGCLOSE        reduce using rule 20 (empty -> .)
+    LONETAGCLOSE    reduce using rule 20 (empty -> .)
+
+    attribute                      shift and go to state 5
+    empty                          shift and go to state 7
+    attributes                     shift and go to state 9
+
+state 6
+
+    (1) header -> HEADEROPEN TAGATTRNAME attributes . HEADERCLOSE root
+
+    HEADERCLOSE     shift and go to state 10
+
+
+state 7
+
+    (12) attributes -> empty .
+
+    TAGCLOSE        reduce using rule 12 (attributes -> empty .)
+    LONETAGCLOSE    reduce using rule 12 (attributes -> empty .)
+    HEADERCLOSE     reduce using rule 12 (attributes -> empty .)
+
+
+state 8
+
+    (13) attribute -> TAGATTRNAME ATTRASSIGN . attrvalue
+    (14) attrvalue -> . ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE
+    (15) attrvalue -> . ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE
+
+    ATTRVALUE1OPEN  shift and go to state 12
+    ATTRVALUE2OPEN  shift and go to state 13
+
+    attrvalue                      shift and go to state 11
+
+state 9
+
+    (11) attributes -> attribute attributes .
+
+    TAGCLOSE        reduce using rule 11 (attributes -> attribute attributes .)
+    LONETAGCLOSE    reduce using rule 11 (attributes -> attribute attributes .)
+    HEADERCLOSE     reduce using rule 11 (attributes -> attribute attributes .)
+
+
+state 10
+
+    (1) header -> HEADEROPEN TAGATTRNAME attributes HEADERCLOSE . root
+    (2) root -> . element
+    (3) root -> . element PCDATA
+    (4) root -> . PCDATA element
+    (5) root -> . PCDATA element PCDATA
+    (6) element -> . opentag children closetag
+    (7) element -> . lonetag
+    (8) opentag -> . OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE
+    (10) lonetag -> . OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE
+
+    PCDATA          shift and go to state 14
+    OPENTAGOPEN     shift and go to state 16
+
+    element                        shift and go to state 15
+    lonetag                        shift and go to state 17
+    root                           shift and go to state 18
+    opentag                        shift and go to state 19
+
+state 11
+
+    (13) attribute -> TAGATTRNAME ATTRASSIGN attrvalue .
+
+    TAGATTRNAME     reduce using rule 13 (attribute -> TAGATTRNAME ATTRASSIGN attrvalue .)
+    HEADERCLOSE     reduce using rule 13 (attribute -> TAGATTRNAME ATTRASSIGN attrvalue .)
+    TAGCLOSE        reduce using rule 13 (attribute -> TAGATTRNAME ATTRASSIGN attrvalue .)
+    LONETAGCLOSE    reduce using rule 13 (attribute -> TAGATTRNAME ATTRASSIGN attrvalue .)
+
+
+state 12
+
+    (14) attrvalue -> ATTRVALUE1OPEN . ATTRVALUE1STRING ATTRVALUE1CLOSE
+
+    ATTRVALUE1STRING shift and go to state 20
+
+
+state 13
+
+    (15) attrvalue -> ATTRVALUE2OPEN . ATTRVALUE2STRING ATTRVALUE2CLOSE
+
+    ATTRVALUE2STRING shift and go to state 21
+
+
+state 14
+
+    (4) root -> PCDATA . element
+    (5) root -> PCDATA . element PCDATA
+    (6) element -> . opentag children closetag
+    (7) element -> . lonetag
+    (8) opentag -> . OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE
+    (10) lonetag -> . OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE
+
+    OPENTAGOPEN     shift and go to state 16
+
+    lonetag                        shift and go to state 17
+    element                        shift and go to state 22
+    opentag                        shift and go to state 19
+
+state 15
+
+    (2) root -> element .
+    (3) root -> element . PCDATA
+
+    $end            reduce using rule 2 (root -> element .)
+    PCDATA          shift and go to state 23
+
+
+state 16
+
+    (8) opentag -> OPENTAGOPEN . TAGATTRNAME attributes TAGCLOSE
+    (10) lonetag -> OPENTAGOPEN . TAGATTRNAME attributes LONETAGCLOSE
+
+    TAGATTRNAME     shift and go to state 24
+
+
+state 17
+
+    (7) element -> lonetag .
+
+    PCDATA          reduce using rule 7 (element -> lonetag .)
+    OPENTAGOPEN     reduce using rule 7 (element -> lonetag .)
+    CLOSETAGOPEN    reduce using rule 7 (element -> lonetag .)
+    $end            reduce using rule 7 (element -> lonetag .)
+
+
+state 18
+
+    (1) header -> HEADEROPEN TAGATTRNAME attributes HEADERCLOSE root .
+
+    $end            reduce using rule 1 (header -> HEADEROPEN TAGATTRNAME attributes HEADERCLOSE root .)
+
+
+state 19
+
+    (6) element -> opentag . children closetag
+    (16) children -> . child children
+    (17) children -> . empty
+    (18) child -> . element
+    (19) child -> . PCDATA
+    (20) empty -> .
+    (6) element -> . opentag children closetag
+    (7) element -> . lonetag
+    (8) opentag -> . OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE
+    (10) lonetag -> . OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE
+
+    PCDATA          shift and go to state 25
+    CLOSETAGOPEN    reduce using rule 20 (empty -> .)
+    OPENTAGOPEN     shift and go to state 16
+
+    element                        shift and go to state 26
+    child                          shift and go to state 27
+    lonetag                        shift and go to state 17
+    children                       shift and go to state 28
+    empty                          shift and go to state 29
+    opentag                        shift and go to state 19
+
+state 20
+
+    (14) attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING . ATTRVALUE1CLOSE
+
+    ATTRVALUE1CLOSE shift and go to state 30
+
+
+state 21
+
+    (15) attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING . ATTRVALUE2CLOSE
+
+    ATTRVALUE2CLOSE shift and go to state 31
+
+
+state 22
+
+    (4) root -> PCDATA element .
+    (5) root -> PCDATA element . PCDATA
+
+    $end            reduce using rule 4 (root -> PCDATA element .)
+    PCDATA          shift and go to state 32
+
+
+state 23
+
+    (3) root -> element PCDATA .
+
+    $end            reduce using rule 3 (root -> element PCDATA .)
+
+
+state 24
+
+    (8) opentag -> OPENTAGOPEN TAGATTRNAME . attributes TAGCLOSE
+    (10) lonetag -> OPENTAGOPEN TAGATTRNAME . attributes LONETAGCLOSE
+    (11) attributes -> . attribute attributes
+    (12) attributes -> . empty
+    (13) attribute -> . TAGATTRNAME ATTRASSIGN attrvalue
+    (20) empty -> .
+
+    TAGATTRNAME     shift and go to state 4
+    TAGCLOSE        reduce using rule 20 (empty -> .)
+    LONETAGCLOSE    reduce using rule 20 (empty -> .)
+
+    attributes                     shift and go to state 33
+    empty                          shift and go to state 7
+    attribute                      shift and go to state 5
+
+state 25
+
+    (19) child -> PCDATA .
+
+    PCDATA          reduce using rule 19 (child -> PCDATA .)
+    OPENTAGOPEN     reduce using rule 19 (child -> PCDATA .)
+    CLOSETAGOPEN    reduce using rule 19 (child -> PCDATA .)
+
+
+state 26
+
+    (18) child -> element .
+
+    PCDATA          reduce using rule 18 (child -> element .)
+    OPENTAGOPEN     reduce using rule 18 (child -> element .)
+    CLOSETAGOPEN    reduce using rule 18 (child -> element .)
+
+
+state 27
+
+    (16) children -> child . children
+    (16) children -> . child children
+    (17) children -> . empty
+    (18) child -> . element
+    (19) child -> . PCDATA
+    (20) empty -> .
+    (6) element -> . opentag children closetag
+    (7) element -> . lonetag
+    (8) opentag -> . OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE
+    (10) lonetag -> . OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE
+
+    PCDATA          shift and go to state 25
+    CLOSETAGOPEN    reduce using rule 20 (empty -> .)
+    OPENTAGOPEN     shift and go to state 16
+
+    element                        shift and go to state 26
+    child                          shift and go to state 27
+    lonetag                        shift and go to state 17
+    children                       shift and go to state 34
+    empty                          shift and go to state 29
+    opentag                        shift and go to state 19
+
+state 28
+
+    (6) element -> opentag children . closetag
+    (9) closetag -> . CLOSETAGOPEN TAGATTRNAME TAGCLOSE
+
+    CLOSETAGOPEN    shift and go to state 35
+
+    closetag                       shift and go to state 36
+
+state 29
+
+    (17) children -> empty .
+
+    CLOSETAGOPEN    reduce using rule 17 (children -> empty .)
+
+
+state 30
+
+    (14) attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE .
+
+    TAGATTRNAME     reduce using rule 14 (attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE .)
+    HEADERCLOSE     reduce using rule 14 (attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE .)
+    TAGCLOSE        reduce using rule 14 (attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE .)
+    LONETAGCLOSE    reduce using rule 14 (attrvalue -> ATTRVALUE1OPEN ATTRVALUE1STRING ATTRVALUE1CLOSE .)
+
+
+state 31
+
+    (15) attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE .
+
+    TAGATTRNAME     reduce using rule 15 (attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE .)
+    HEADERCLOSE     reduce using rule 15 (attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE .)
+    TAGCLOSE        reduce using rule 15 (attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE .)
+    LONETAGCLOSE    reduce using rule 15 (attrvalue -> ATTRVALUE2OPEN ATTRVALUE2STRING ATTRVALUE2CLOSE .)
+
+
+state 32
+
+    (5) root -> PCDATA element PCDATA .
+
+    $end            reduce using rule 5 (root -> PCDATA element PCDATA .)
+
+
+state 33
+
+    (8) opentag -> OPENTAGOPEN TAGATTRNAME attributes . TAGCLOSE
+    (10) lonetag -> OPENTAGOPEN TAGATTRNAME attributes . LONETAGCLOSE
+
+    TAGCLOSE        shift and go to state 38
+    LONETAGCLOSE    shift and go to state 37
+
+
+state 34
+
+    (16) children -> child children .
+
+    CLOSETAGOPEN    reduce using rule 16 (children -> child children .)
+
+
+state 35
+
+    (9) closetag -> CLOSETAGOPEN . TAGATTRNAME TAGCLOSE
+
+    TAGATTRNAME     shift and go to state 39
+
+
+state 36
+
+    (6) element -> opentag children closetag .
+
+    PCDATA          reduce using rule 6 (element -> opentag children closetag .)
+    OPENTAGOPEN     reduce using rule 6 (element -> opentag children closetag .)
+    CLOSETAGOPEN    reduce using rule 6 (element -> opentag children closetag .)
+    $end            reduce using rule 6 (element -> opentag children closetag .)
+
+
+state 37
+
+    (10) lonetag -> OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE .
+
+    PCDATA          reduce using rule 10 (lonetag -> OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE .)
+    $end            reduce using rule 10 (lonetag -> OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE .)
+    OPENTAGOPEN     reduce using rule 10 (lonetag -> OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE .)
+    CLOSETAGOPEN    reduce using rule 10 (lonetag -> OPENTAGOPEN TAGATTRNAME attributes LONETAGCLOSE .)
+
+
+state 38
+
+    (8) opentag -> OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE .
+
+    PCDATA          reduce using rule 8 (opentag -> OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE .)
+    OPENTAGOPEN     reduce using rule 8 (opentag -> OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE .)
+    CLOSETAGOPEN    reduce using rule 8 (opentag -> OPENTAGOPEN TAGATTRNAME attributes TAGCLOSE .)
+
+
+state 39
+
+    (9) closetag -> CLOSETAGOPEN TAGATTRNAME . TAGCLOSE
+
+    TAGCLOSE        shift and go to state 40
+
+
+state 40
+
+    (9) closetag -> CLOSETAGOPEN TAGATTRNAME TAGCLOSE .
+
+    PCDATA          reduce using rule 9 (closetag -> CLOSETAGOPEN TAGATTRNAME TAGCLOSE .)
+    $end            reduce using rule 9 (closetag -> CLOSETAGOPEN TAGATTRNAME TAGCLOSE .)
+    OPENTAGOPEN     reduce using rule 9 (closetag -> CLOSETAGOPEN TAGATTRNAME TAGCLOSE .)
+    CLOSETAGOPEN    reduce using rule 9 (closetag -> CLOSETAGOPEN TAGATTRNAME TAGCLOSE .)
+
